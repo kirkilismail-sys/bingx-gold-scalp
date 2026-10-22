@@ -1,28 +1,37 @@
 # Validation — 2026-10-22
 
-## Published
+## Current result: LIVE STREAM WORKING
 
 https://kirkilismail-sys.github.io/bingx-gold-scalp/
 
-GitHub Pages build and deployment completed successfully. Source: main branch, root folder. Enforce HTTPS is checked and mandatory on the default github.io domain.
+The official BingX public WebSocket delivered real GOLD(XAU) prices to the published HTTPS panel in Chrome. API symbol: NCCOGOLD2USD-USDT. The counter advanced past 300 incoming price messages after a manual stop/start test. Observed prices included 4099.88, 4099.59 and 4099.48; these are historical test samples, not current quotes.
 
-## Passed
+Last price, best bid/ask, spread and mark price populated automatically. Example spread was 0.01 USD. Exchange source timestamp was not supplied in the observed payloads and stayed blank; browser receive time advanced.
 
-- Published page loads and JavaScript initializes. Tap-test button works.
-- Four built-in arithmetic checks pass.
-- Source execution checks: LONG and SHORT levels, blank-input output clearing, reset, initial price-transfer disabled, absence of trading endpoints and credentials.
-- Narrow browser viewport: no horizontal overflow (document clientWidth and scrollWidth both 375 CSS pixels). This is a Chrome responsive-layout check, not a physical iPhone/Safari test.
-- Official BingX contracts response maps displayName GOLD(XAU)-USDT to API symbol NCCOGOLD2USD-USDT.
-- Direct browser navigation to the official ticker endpoint returned code 0 and lastPrice 4096.79 during testing. This was a point-in-time value, not a stored live price.
+## Browser checks passed
 
-## Live connection limitation
+- JavaScript initialization and four built-in arithmetic checks.
+- Price changes and update counter advance automatically without clicking refresh.
+- Transfer copies the current received price into the planning entry and recalculates levels. Entry then stays fixed while subsequent live prices continue changing.
+- Stop clears live values and disables transfer. Start reconnects, resubscribes and resumes real data.
+- Narrow responsive viewport: document clientWidth and scrollWidth were both 375 CSS pixels, with no horizontal overflow. This was Chrome layout testing, not a physical iPhone/Safari test.
 
-The published panel GET request failed with Failed to fetch. A separate server-side request carrying the Pages Origin header returned HTTP 403 with no Access-Control-Allow-Origin header. This does not uniquely establish whether CORS, gateway policy or regional access is the root cause. Direct navigation to the endpoint succeeded, but panel-to-API connectivity did not.
+## Source checks passed
 
-No mock, token substitute, API key or third-party public CORS proxy was added. Failed requests leave the price blank and transfer disabled. Manual calculations remain usable.
+- JavaScript syntax validation.
+- Mocked stream checks for market-only subscriptions, Ping/Pong, wrong-symbol rejection, price parsing, spread, planning transfer, 15-second stale-data blocking and reconnect/resubscribe.
+- No API keys, account APIs, listen keys, trading endpoints or real order submission.
 
-A controlled, read-only quote relay with an allowed browser origin is the next implementation step if direct browser access remains blocked. GitHub Pages alone cannot run that server.
+## Connection design
 
-## Order safety
+Uses wss://open-api-swap.bingx.com/swap-market and the fixed, previously verified GOLD(XAU) symbol. Only lastPrice, ticker, markPrice and bookTicker subscriptions plus Pong heartbeat are sent. GZIP decoding uses built-in browser APIs. No third-party CORS proxy.
 
-Real order submission remains disabled. There are no account APIs, API keys or trade endpoints. Only four public quote GET paths are allowlisted. The Content Security Policy limits connections to the BingX quote path and disables forms.
+Manual entry and risk calculations remain available when disconnected. Transfer is blocked if no price message arrives for 15 seconds; stale book and mark fields are cleared. Receive time is not a guarantee of the age of the last trade.
+
+## Earlier REST issue — resolved by changing transport
+
+Direct REST requests from the Pages panel failed with Failed to fetch, while direct navigation to the API worked. That panel request was replaced with the working public WebSocket feed. A quote relay is not needed for the tested browser connection.
+
+## Hosting
+
+GitHub Pages: main branch, root folder. HTTPS enforced. Live stream code was published and tested on 2026-10-22.
